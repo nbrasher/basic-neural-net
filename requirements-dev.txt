@@ -1,4 +1,7 @@
 black==21.5b1
+fastparquet
 flake8==3.8.3
+pandas
 pre-commit==2.13.0
 pytest
+scikit-learn

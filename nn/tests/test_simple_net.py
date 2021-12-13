@@ -9,7 +9,13 @@ from nn.nn import SimpleNet
 
 @pytest.fixture
 def sn():
-    yield SimpleNet()
+    yield SimpleNet([10, 8, 6, 4])
+
+
+def test_init(sn):
+    assert sn.W[0].shape == (8, 10)
+    assert sn.W[1].shape == (6, 8)
+    assert sn.W[2].shape == (4, 6)
 
 
 def test_sigmoid(sn):
@@ -40,3 +46,19 @@ def test_softmax_deriv(sn):
     ans = (ans * (sum(ans) - ans)) / (sum(ans) ** 2)
 
     assert_array_almost_equal(sn.softmax_deriv(a), ans)
+
+
+def test_fp(sn):
+    x = np.ones((10, 3))
+    res = sn.forward_pass(x)
+    assert res.shape == (4, 3)
+
+
+def test_bp(sn):
+    x = np.ones(10)
+    y = np.random.randn(4)
+    res = sn.forward_pass(x)
+    delta = sn.backward_pass(y, res)
+
+    assert len(delta) == len(sn.W)
+    assert all(d.shape == w.shape for d, w in zip(delta, sn.W))
