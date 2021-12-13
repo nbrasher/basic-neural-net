@@ -2,7 +2,7 @@
 Simple neural net using stochastic gradient descent. Coded from scratch in Numpy. This is purely an excercise in understanding he building blocks. If you cant explain it, you dont understand it.
 
 ## Usage
-Useful as a learning tool, but suffers from the exploding gradients problem.
+Useful as a learning tool.
 
 Creates a dense neural network with sigmoid units, last layer is a softmax unit.
 
