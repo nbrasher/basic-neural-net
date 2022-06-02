@@ -40,14 +40,6 @@ def test_softmax(sn):
     assert_array_almost_equal(sn.softmax(a), ans)
 
 
-def test_softmax_deriv(sn):
-    a = np.array(range(5))
-    ans = np.array([exp(i) for i in range(5)])
-    ans = (ans * (sum(ans) - ans)) / (sum(ans) ** 2)
-
-    assert_array_almost_equal(sn.softmax_deriv(a), ans)
-
-
 def test_fp(sn):
     x = np.ones((10, 3))
     res = sn.forward_pass(x)

@@ -1,5 +1,5 @@
 # Basic Neural Network
-Simple neural net using stochastic gradient descent. Coded from scratch in Numpy. This is purely an excercise in understanding he building blocks. If you cant explain it, you dont understand it.
+Simple neural net using stochastic gradient descent. Coded from scratch in Numpy. This is purely an excercise in understanding the building blocks.
 
 ## Usage
 Useful as a learning tool.

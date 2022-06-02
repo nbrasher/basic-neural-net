@@ -37,10 +37,6 @@ class SimpleNet:
         s = np.divide(s, s_sum, where=s_sum > 1e-15)
         return s
 
-    def softmax_deriv(self, x: np.ndarray) -> np.ndarray:
-        s = self.softmax(x)
-        return s * (1.0 - s)
-
     def forward_pass(self, x: np.ndarray) -> np.ndarray:
         self.A[0] = x
         ret = None
@@ -55,10 +51,11 @@ class SimpleNet:
 
         return ret
 
-    def backward_pass(self, y: np.ndarray, output: np.ndarray) -> np.ndarray:
+    def backward_pass(self, y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
         delta = [None for _ in range(len(self.sizes) - 1)]
 
-        error = 2 * (output - y) / output.shape[0] * self.softmax_deriv(self.Z[-1])
+        # Equaivalent to categorical cross-entropy loss gradient
+        error = (y_pred - y_true) / y_pred.shape[0]
 
         for i in range(len(self.sizes) - 2, -1, -1):
             if i != len(self.sizes) - 2:
@@ -82,7 +79,7 @@ class SimpleNet:
         y_train: np.ndarray,
         X_test: np.ndarray,
         y_test: np.ndarray,
-        lr_rate: float = 0.01,
+        lr_rate: float = 5e-3,
         epochs: int = 100,
     ):
 
