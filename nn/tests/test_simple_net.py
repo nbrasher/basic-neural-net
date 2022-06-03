@@ -1,4 +1,4 @@
-from math import exp
+from math import exp, log
 
 import numpy as np
 import pytest
@@ -54,3 +54,21 @@ def test_bp(sn):
 
     assert len(delta) == len(sn.W)
     assert all(d.shape == w.shape for d, w in zip(delta, sn.W))
+
+
+def test_accuracy(sn):
+    yp1 = np.array([[0.8, 0.1, 0.1], [0.1, 0.8, 0.1], [0.1, 0.1, 0.8]])
+    yp2 = np.array([[0.8, 0.1, 0.1], [0.1, 0.8, 0.1], [0.1, 0.8, 0.1]])
+    yt = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+
+    assert sn.accuracy(yp1, yt) == 1.0
+    assert sn.accuracy(yp2, yt) == 2.0 / 3.0
+
+
+def test_cat_loss(sn):
+    yp1 = np.array([[0.8, 0.1, 0.1], [0.1, 0.8, 0.1], [0.1, 0.1, 0.8]])
+    yp2 = np.array([[0.8, 0.1, 0.1], [0.1, 0.8, 0.1], [0.1, 0.8, 0.1]])
+    yt = np.array([[1, 0, 0], [0, 1, 0], [0, 0, 1]])
+
+    assert sn.cross_entropy_loss(yp1, yt) == -3 * log(0.8)
+    assert sn.cross_entropy_loss(yp2, yt) == -2 * log(0.8) - log(0.1)

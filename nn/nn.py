@@ -65,13 +65,17 @@ class SimpleNet:
 
         return delta
 
-    def compute_accuracy(self, x_val: np.ndarray, y_val: np.ndarray) -> float:
-        predictions = [
-            np.argmax(self.forward_pass(x)) == np.argmax(y)
-            for x, y in zip(x_val, y_val)
-        ]
+    @staticmethod
+    def accuracy(y_pred: np.ndarray, y_true: np.ndarray) -> float:
+        predictions = [np.argmax(yp) == np.argmax(yt) for yp, yt in zip(y_pred, y_true)]
 
         return np.mean(predictions)
+
+    @staticmethod
+    def cross_entropy_loss(y_pred: np.ndarray, y_true: np.ndarray) -> float:
+        loss = [-np.dot(np.log(yp), yt) for yp, yt in zip(y_pred, y_true)]
+
+        return np.sum(loss)
 
     def train(
         self,
@@ -79,7 +83,7 @@ class SimpleNet:
         y_train: np.ndarray,
         X_test: np.ndarray,
         y_test: np.ndarray,
-        lr_rate: float = 5e-3,
+        lr_rate: float = 1e-2,
         epochs: int = 100,
     ):
 
@@ -94,10 +98,19 @@ class SimpleNet:
                 for i, grad in enumerate(delta):
                     self.W[i] -= lr_rate * grad
 
-            accuracy = self.compute_accuracy(X_test, y_test)
+            y_pred_train = [self.forward_pass(x) for x in X_train]
+            y_pred_test = [self.forward_pass(x) for x in X_test]
 
+            print("Epoch: {}, Time: {:.1f}s".format(str(e).zfill(3), time() - start))
             print(
-                "Epoch: {}, Time: {:.1f}s, Validation accuracy: {:.2f}%".format(
-                    str(e).zfill(3), time() - start, accuracy * 100
+                "Train Loss: {:,.1f}, Train Accuracy: {:.2f}%".format(
+                    self.cross_entropy_loss(y_pred_train, y_train),
+                    100 * self.accuracy(y_pred_train, y_train),
+                )
+            )
+            print(
+                "Val Loss: {:,.1f}, Val Accuracy: {:.2f}%".format(
+                    self.cross_entropy_loss(y_pred_test, y_test),
+                    100 * self.accuracy(y_pred_test, y_test),
                 )
             )
