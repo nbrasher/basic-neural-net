@@ -32,6 +32,20 @@ def test_sigmoid_deriv(sn):
     assert_array_almost_equal(sn.sigmoid_deriv(a), ans)
 
 
+def test_relu(sn):
+    a = np.array(range(-3, 4))
+    ans = np.array([0, 0, 0, 0, 1, 2, 3])
+
+    assert_array_almost_equal(sn.relu(a), ans)
+
+
+def test_relu_deriv(sn):
+    a = np.array(range(-3, 4))
+    ans = np.array([0, 0, 0, 0, 1, 1, 1])
+
+    assert_array_almost_equal(sn.relu_deriv(a), ans)
+
+
 def test_softmax(sn):
     a = np.array(range(5))
     ans = np.array([exp(i) for i in range(5)])

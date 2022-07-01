@@ -11,6 +11,7 @@ class SimpleNet:
 
     def __init__(self, sizes: List[int]):
         self.sizes = sizes
+        self.n_layers = len(sizes) - 1
 
         # Random initialization for weights, using Xavier initialization for stability
         self.W = [
@@ -18,11 +19,10 @@ class SimpleNet:
                 scale=np.sqrt(2.0 / (sizes[i + 1] + sizes[i])),
                 size=(sizes[i + 1], sizes[i]),
             )
-            for i in range(len(sizes) - 1)
+            for i in range(self.n_layers)
         ]
-        self.A = [None for _ in range(len(sizes) - 1)]
-        self.Z = [None for _ in range(len(sizes) - 1)]
-        self.params = {}
+        self.A = [np.zeros((sizes[i],)) for i in range(self.n_layers)]
+        self.Z = [np.zeros((sizes[i + 1],)) for i in range(self.n_layers)]
 
     def sigmoid(self, x: np.ndarray) -> np.ndarray:
         return np.divide(1.0, 1.0 + np.exp(-x))
@@ -30,6 +30,12 @@ class SimpleNet:
     def sigmoid_deriv(self, x: np.ndarray) -> np.ndarray:
         s = self.sigmoid(x)
         return s * (1.0 - s)
+
+    def relu(self, x: np.ndarray) -> np.ndarray:
+        return np.where(x > 0, x, 0)
+
+    def relu_deriv(self, x: np.ndarray) -> np.ndarray:
+        return np.where(x > 0, 1, 0)
 
     def softmax(self, x: np.ndarray) -> np.ndarray:
         s = np.exp(x - x.max())
@@ -39,27 +45,24 @@ class SimpleNet:
 
     def forward_pass(self, x: np.ndarray) -> np.ndarray:
         self.A[0] = x
-        ret = None
 
-        for i in range(len(self.sizes) - 1):
+        for i in range(self.n_layers):
             self.Z[i] = self.W[i] @ self.A[i]
 
-            if i == (len(self.sizes) - 2):
-                ret = self.softmax(self.Z[i])
-            else:
-                self.A[i + 1] = self.sigmoid(self.Z[i])
+            if i < self.n_layers - 1:
+                self.A[i + 1] = self.relu(self.Z[i])
 
-        return ret
+        return self.softmax(self.Z[-1])
 
     def backward_pass(self, y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
-        delta = [None for _ in range(len(self.sizes) - 1)]
+        delta = [None for _ in range(self.n_layers)]
 
         # Equaivalent to categorical cross-entropy loss gradient
         error = (y_pred - y_true) / y_pred.shape[0]
 
-        for i in range(len(self.sizes) - 2, -1, -1):
-            if i != len(self.sizes) - 2:
-                error = (self.W[i + 1].T @ error) * self.sigmoid_deriv(self.Z[i])
+        for i in range(self.n_layers - 1, -1, -1):
+            if i < self.n_layers - 1:
+                error = (self.W[i + 1].T @ error) * self.relu_deriv(self.Z[i])
 
             delta[i] = np.outer(error, self.A[i])
 
@@ -83,7 +86,7 @@ class SimpleNet:
         y_train: np.ndarray,
         X_test: np.ndarray,
         y_test: np.ndarray,
-        lr_rate: float = 1e-2,
+        lr_rate: float = 1e-3,
         epochs: int = 100,
     ):
 
