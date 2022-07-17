@@ -7,8 +7,8 @@ Useful as a learning tool.
 Creates a dense neural network with sigmoid units, last layer is a softmax unit.
 
 ```python
-sn = SimpleNet(sizes=[784, 128, 64, 10])
-sn.train(X_train, y_train, X_test, y_test)
+m = MultiClassDense(input_shape=784, sizes=[128, 64, 10])
+m.train(X_train, y_train, X_test, y_test)
 ```
 
 ## Development

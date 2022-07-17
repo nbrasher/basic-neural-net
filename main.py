@@ -3,7 +3,7 @@ from sklearn.datasets import fetch_openml
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelBinarizer
 
-from nn.nn import SimpleNet
+from nn.models import MultiClassDense
 
 
 def main():
@@ -25,8 +25,8 @@ def main():
         X, y, test_size=0.2, random_state=154
     )
 
-    sn = SimpleNet(sizes=[784, 128, 64, 10])
-    sn.train(X_train, y_train, X_test, y_test)
+    m = MultiClassDense(input_shape=784, sizes=[128, 64, 10])
+    m.train(X_train, y_train, X_test, y_test)
 
 
 if __name__ == "__main__":
