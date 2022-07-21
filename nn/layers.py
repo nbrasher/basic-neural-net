@@ -85,3 +85,50 @@ class Flatten(Layer):
 
     def backward_pass(self, x: np.ndarray, lr: float) -> np.ndarray:
         return x.reshape(self.input_shape)
+
+
+class Dropout(Layer):
+    """Dropout layer to radomly remove connections and prevent overfitting"""
+
+    def __init__(self, input_shape: int, factor: float):
+        if not isinstance(factor, float) or factor < 0.0 or factor > 1.0:
+            raise ValueError("factor must be a float between 0. to 1. (inclusive)")
+        self.input_shape = input_shape
+        self.factor = factor
+        self.mask = np.array([])
+
+    def forward_pass(self, x: np.ndarray) -> np.ndarray:
+        self.mask = (
+            np.random.random_sample((self.input_shape, 1)) > self.factor
+        ).astype(int)
+        return (x * self.mask) * (1.0 / (1.0 - self.factor))
+
+    def backward_pass(self, x: np.ndarray, lr: float) -> np.ndarray:
+        return (x * self.mask) * (1.0 - self.factor)
+
+
+class Conv2D(Layer):
+    """2D Convolutional layer for computer vision"""
+
+    def __init__(
+        self, n_kernels: int, kernel_shape: Tuple[int], input_shape: Tuple[int]
+    ):
+        self.input_shape = input_shape
+        self.kernel_shape = kernel_shape
+        self.output_shape = (
+            input_shape[0] - kernel_shape[0],
+            input_shape[1] - kernel_shape[1],
+            n_kernels,
+        )
+        self.W = np.random.normal(
+            scale=np.sqrt(2.0 / (prod(self.output_shape) * prod(self.kernel_shape))),
+            size=(kernel_shape[0], kernel_shape[1], n_kernels),
+        )
+        self.A = np.empty(self.output_shape)
+        self.Z = np.empty(self.output_shape)
+
+    def forward_pass(self, x: np.ndarray) -> np.ndarray:
+        pass
+
+    def backward_pass(self, x: np.ndarray, lr: float) -> np.ndarray:
+        pass

@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 
-from nn.layers import Dense, Flatten
+from nn.layers import Conv2D, Dense, Dropout, Flatten
 
 
 @pytest.fixture
@@ -66,3 +66,22 @@ def test_flatten_3d():
 
     assert_array_equal(flat.forward_pass(input), exp)
     assert_array_equal(flat.backward_pass(exp, 0.01), input)
+
+
+def test_dropout():
+    d = Dropout(input_shape=10, factor=0.25)
+    res = d.forward_pass(np.ones((10, 1)))
+
+    assert d.mask.shape == (10, 1)
+    assert sum(d.mask)[0] == 8
+
+    assert sum(res)[0] == 8 * (1 / (1 - 0.25))
+
+    res2 = d.backward_pass(np.ones((10, 1)), lr=0.01)
+
+    assert sum(res2)[0] == 8 * (1 - 0.25)
+
+
+def test_conv_shapes():
+    # TODO - test correct layer shapes
+    pass
