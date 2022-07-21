@@ -3,6 +3,7 @@ from math import prod
 from typing import Tuple
 
 import numpy as np
+from scipy.signal import convolve
 
 from nn.activation import relu, relu_deriv, sigmoid, sigmoid_deriv, softmax
 
@@ -113,22 +114,28 @@ class Conv2D(Layer):
     def __init__(
         self, n_kernels: int, kernel_shape: Tuple[int], input_shape: Tuple[int]
     ):
+        # TODO - check input and output shape dimensions
         self.input_shape = input_shape
         self.kernel_shape = kernel_shape
+        self.n_kernels = n_kernels
         self.output_shape = (
-            input_shape[0] - kernel_shape[0],
-            input_shape[1] - kernel_shape[1],
+            input_shape[0] - kernel_shape[0] + 1,
+            input_shape[1] - kernel_shape[1] + 1,
             n_kernels,
         )
         self.W = np.random.normal(
-            scale=np.sqrt(2.0 / (prod(self.output_shape) * prod(self.kernel_shape))),
-            size=(kernel_shape[0], kernel_shape[1], n_kernels),
+            scale=np.sqrt(2.0 / (prod(self.output_shape) * prod(kernel_shape))),
+            size=tuple(list(kernel_shape) + [input_shape[2]] + [n_kernels]),
         )
         self.A = np.empty(self.output_shape)
-        self.Z = np.empty(self.output_shape)
 
     def forward_pass(self, x: np.ndarray) -> np.ndarray:
-        pass
+        for i in range(self.n_kernels):
+            cnv = convolve(self.W[:, :, :, i], x, "valid")
+            self.A[:, :, i] = cnv.reshape((self.output_shape[0], self.output_shape[1]))
+
+        return relu(self.A)
 
     def backward_pass(self, x: np.ndarray, lr: float) -> np.ndarray:
+        # TODO - calculate gradient
         pass

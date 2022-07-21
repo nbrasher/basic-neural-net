@@ -14,6 +14,15 @@ def dense_layer():
     yield layer
 
 
+@pytest.fixture
+def conv_layer():
+    layer = Conv2D(n_kernels=2, kernel_shape=(2, 2), input_shape=(3, 3, 1))
+
+    # Replace weights for test purposes
+    layer.W = np.array([[[[1.0, 2.0]], [[1.0, 2.0]]], [[[1.0, 2.0]], [[1.0, 2.0]]]])
+    yield layer
+
+
 def test_dense(dense_layer):
     assert dense_layer.W.shape == (3, 2)
     assert dense_layer.A.shape == (2, 1)
@@ -83,5 +92,16 @@ def test_dropout():
 
 
 def test_conv_shapes():
-    # TODO - test correct layer shapes
-    pass
+    c2 = Conv2D(n_kernels=6, kernel_shape=(3, 3), input_shape=(28, 28, 1))
+
+    assert c2.output_shape == (26, 26, 6)
+    assert c2.W.shape == (3, 3, 1, 6)
+
+
+def test_conv_math(conv_layer):
+    x = np.array([[[1], [2], [3]], [[3], [4], [5]], [[6], [7], [-20]]])
+    exp = np.array([[[10, 20], [14, 28]], [[20, 40], [0, 0]]])
+    res = conv_layer.forward_pass(x)
+
+    assert res.shape == conv_layer.output_shape
+    assert_array_equal(res, exp)
