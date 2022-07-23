@@ -3,6 +3,7 @@ from math import prod
 from typing import Tuple
 
 import numpy as np
+from numpy.random import random_sample
 from scipy.signal import convolve
 
 from nn.activation import relu, relu_deriv, sigmoid, sigmoid_deriv, softmax
@@ -99,9 +100,7 @@ class Dropout(Layer):
         self.mask = np.array([])
 
     def forward_pass(self, x: np.ndarray) -> np.ndarray:
-        self.mask = (
-            np.random.random_sample((self.input_shape, 1)) > self.factor
-        ).astype(int)
+        self.mask = (random_sample((self.input_shape, 1)) > self.factor).astype(int)
         return (x * self.mask) * (1.0 / (1.0 - self.factor))
 
     def backward_pass(self, x: np.ndarray, lr: float) -> np.ndarray:
@@ -130,12 +129,31 @@ class Conv2D(Layer):
         self.A = np.empty(self.output_shape)
 
     def forward_pass(self, x: np.ndarray) -> np.ndarray:
-        for i in range(self.n_kernels):
-            cnv = convolve(self.W[:, :, :, i], x, "valid")
-            self.A[:, :, i] = cnv.reshape((self.output_shape[0], self.output_shape[1]))
+        self.A = x
+        cnv_res = [convolve(slice, x, "valid") for slice in np.moveaxis(self.W, -1, 0)]
+        self.Z = np.stack(cnv_res, axis=2).reshape(self.output_shape)
 
-        return relu(self.A)
+        return relu(self.Z)
 
     def backward_pass(self, x: np.ndarray, lr: float) -> np.ndarray:
-        # TODO - calculate gradient
-        pass
+        error = x * relu_deriv(self.Z)
+
+        # Propagated error
+        ret = np.empty(self.input_shape)
+        for i in range(self.input_shape[2]):
+            output_layers = np.array(
+                [
+                    convolve(error[:, :, j], self.W[:, :, i, j], "full")
+                    for j in range(self.n_kernels)
+                ]
+            )
+            ret[:, :, i] = output_layers.sum(axis=0)
+
+        # Weight gradient
+        W_grad = np.empty(self.W.shape)
+        for i in range(self.n_kernels):
+            W_grad[:, :, :, i] = convolve(error[:, :, [i]], self.A, "valid")
+
+        self.W -= lr * W_grad
+
+        return ret

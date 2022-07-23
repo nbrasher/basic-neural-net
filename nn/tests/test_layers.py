@@ -99,9 +99,23 @@ def test_conv_shapes():
 
 
 def test_conv_math(conv_layer):
-    x = np.array([[[1], [2], [3]], [[3], [4], [5]], [[6], [7], [-20]]])
-    exp = np.array([[[10, 20], [14, 28]], [[20, 40], [0, 0]]])
+    x = np.array([[[1], [2], [3]], [[4], [5], [6]], [[7], [8], [-20]]])
+    exp = np.array([[[12, 24], [16, 32]], [[24, 48], [0, 0]]])
     res = conv_layer.forward_pass(x)
 
     assert res.shape == conv_layer.output_shape
     assert_array_equal(res, exp)
+
+    error = np.ones((2, 2, 2))
+    exp_W = np.array([[[[-0.1, 0.9]], [[-0.4, 0.6]]], [[[-1, 0]], [[1.6, 2.6]]]])
+
+    # Not sure about this one
+    exp_error = np.array([[[3], [6], [3]], [[6], [9], [3]], [[3], [3], [0]]])
+
+    res2 = conv_layer.backward_pass(error, lr=0.1)
+
+    assert res2.shape == conv_layer.input_shape
+    assert_array_equal(res2, exp_error)
+    print(res2, exp_error)
+
+    assert_array_almost_equal(conv_layer.W, exp_W)
